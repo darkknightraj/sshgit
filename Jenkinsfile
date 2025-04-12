@@ -5,8 +5,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/darkknightraj/ssh.git',
-                credentialsId: 'First time trying jenkins'
+                url: 'https://github.com/darkknightraj/sshgit.git',
+                credentialsId: 'github-pat'
             }
         }
         
