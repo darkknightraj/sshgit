@@ -1,29 +1,42 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
                 url: 'https://github.com/darkknightraj/sshgit.git',
-                credentialsId: 'github-pat'
+                credentialsId: 'github-pat'  // Your GitHub credentials ID
             }
         }
-        
-        stage('Build') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("my-python-app:${env.BUILD_ID}")
+                    // Stop/remove old container if running
+                    sh 'docker stop myapp || true'
+                    sh 'docker rm myapp || true'
+                    
+                    // Build new image
+                    sh 'docker build -t my-python-app:1 .'
                 }
             }
         }
-        
-        stage('Run') {
+
+        stage('Run Container') {
             steps {
                 script {
-                    docker.image("my-python-app:${env.BUILD_ID}").run('--rm -d -p 4000:80 --name myapp')
+                    // Run with restart policy (auto-recover on crashes)
+                    sh 'docker run -d --restart unless-stopped -p 4000:80 --name myapp my-python-app:1'
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up...'
+            // Optional: Add cleanup steps if needed
         }
     }
 }
